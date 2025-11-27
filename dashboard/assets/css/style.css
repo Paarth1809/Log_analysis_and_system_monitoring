@@ -1,0 +1,17 @@
+body {
+    background: #f5f5f5;
+    font-family: Arial, sans-serif;
+}
+
+.container-box {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table thead {
+    background: #222;
+    color: white;
+}

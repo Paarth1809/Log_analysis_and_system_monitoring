@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Run Jobs — SOC Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="assets/js/api.js"></script>
+    <style>
+        .job-card {
+            margin: 12px 0;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+
+<body class="p-4">
+    <h2>Automation — Run Jobs</h2>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 job-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Parser</h5>
+                        <p class="card-text">Parse datasets & insert into MongoDB</p>
+                        <button id="btn-parser" class="btn btn-primary w-100" onclick="startJob('parser')">Run
+                            Parser</button>
+                        <div id="status-parser" class="mt-2 small text-muted"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 job-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Matching</h5>
+                        <p class="card-text">Run vulnerability matching engine</p>
+                        <button id="btn-matching" class="btn btn-primary w-100" onclick="startJob('matching')">Run
+                            Matching</button>
+                        <div id="status-matching" class="mt-2 small text-muted"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 job-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Alerts</h5>
+                        <p class="card-text">Generate alerts from matches</p>
+                        <button id="btn-alerts" class="btn btn-danger w-100" onclick="startJob('alerts')">Generate
+                            Alerts</button>
+                        <div id="status-alerts" class="mt-2 small text-muted"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 job-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Reports</h5>
+                        <p class="card-text">Run reports/export JSON+PDF</p>
+                        <button id="btn-reports" class="btn btn-secondary w-100" onclick="startJob('reports')">Run
+                            Reports</button>
+                        <div id="status-reports" class="mt-2 small text-muted"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <hr>
+        <h6>Active Tasks</h6>
+        <div id="active-tasks" class="mt-2"></div>
+    </div>
+
+    <script>
+        async function startJob(name) {
+            const btn = document.getElementById('btn-' + name);
+            const statusEl = document.getElementById('status-' + name);
+            statusEl.innerText = 'Starting...';
+            btn.disabled = true;
+
+            const res = await fetch('/run/' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+            const data = await res.json();
+            const taskId = data.task_id;
+            statusEl.innerText = `Task started: ${taskId}`;
+
+            // poll status
+            const interval = setInterval(async () => {
+                const sres = await fetch('/run/status/' + taskId);
+                const s = await sres.json();
+                statusEl.innerText = `${s.state} — ${s.msg || ''} — ${s.progress || 0}%`;
+                renderActiveTasks();
+
+                if (s.state === 'success' || s.state === 'failed') {
+                    clearInterval(interval);
+                    btn.disabled = false;
+                    // refresh stats/logs after completion
+                    await fetch('/stats'); // server side updated
+                }
+            }, 1000);
+        }
+
+        async function renderActiveTasks() {
+            const res = await fetch('/run/list');
+            const data = await res.json();
+            const el = document.getElementById('active-tasks');
+            el.innerHTML = Object.values(data).map(t => {
+                return `<div class="p-2 border rounded mb-1">
+      <strong>${t.name}</strong> - ${t.id} - <em>${t.state}</em> - ${t.progress}%<br/>
+      ${t.msg || ''}
+    </div>`;
+            }).join('');
+        }
+
+        setInterval(renderActiveTasks, 2000);
+        renderActiveTasks();
+    </script>
+</body>
+
+</html>
