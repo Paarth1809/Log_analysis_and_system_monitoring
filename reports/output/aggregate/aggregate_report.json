@@ -1,0 +1,15 @@
+{
+    "generated_at": "2025-11-26T23:44:41.403386+00:00",
+    "total_hosts": 1,
+    "total_vulnerabilities": 0,
+    "severity_distribution": {
+        "Critical": 0,
+        "High": 0,
+        "Medium": 0,
+        "Low": 0,
+        "Unknown": 0
+    },
+    "recommendations": [
+        "All hosts clean \u2014 no vulnerabilities detected."
+    ]
+}

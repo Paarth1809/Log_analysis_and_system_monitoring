@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CVE List</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/api.js"></script>
+</head>
+
+<body class="p-4">
+
+    <h2>🛡️ Vulnerability Database (CVE)</h2>
+
+    <div class="container-box">
+        <div class="row g-2">
+            <div class="col-md-4"><input id="cveSearch" class="form-control" placeholder="Search CVE, vendor, product">
+            </div>
+            <div class="col-md-2"><button onclick="loadCVEs()" class="btn btn-dark w-100">Search</button></div>
+        </div>
+
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>CVE ID</th>
+                    <th>Vendor</th>
+                    <th>Product</th>
+                    <th>CVSS</th>
+                    <th>Severity</th>
+                </tr>
+            </thead>
+            <tbody id="cveTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadCVEs() {
+            const q = document.getElementById("cveSearch").value;
+            const data = await apiGet("/cves" + qs({ q, limit: 30 }));
+
+            const rows = data.items.map(cve => `
+        <tr>
+            <td>${cve.cve_id}</td>
+            <td>${cve.vendor}</td>
+            <td>${cve.product}</td>
+            <td>${cve.cvss_score}</td>
+            <td>${cve.severity}</td>
+        </tr>
+    `).join("");
+
+            document.getElementById("cveTable").innerHTML = rows;
+        }
+
+        loadCVEs();
+    </script>
+
+</body>
+
+</html>

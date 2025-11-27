@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Logs</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/api.js"></script>
+</head>
+
+<body class="p-4">
+
+    <h2>📜 Normalized Logs</h2>
+
+    <div class="container-box">
+        <div class="row g-2">
+            <div class="col-md-3"><input id="host" class="form-control" placeholder="Host"></div>
+            <div class="col-md-3"><input id="software" class="form-control" placeholder="Software"></div>
+            <div class="col-md-3"><input id="q" class="form-control" placeholder="Search Keyword"></div>
+            <div class="col-md-3">
+                <button class="btn btn-dark w-100" onclick="loadLogs()">Search</button>
+            </div>
+        </div>
+
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Host</th>
+                    <th>Software</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody id="logTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadLogs() {
+            const params = {
+                limit: 20,
+                host: document.getElementById("host").value,
+                software: document.getElementById("software").value,
+                q: document.getElementById("q").value
+            };
+
+            const data = await apiGet("/logs" + qs(params));
+
+            const rows = data.items.map(l => `
+        <tr>
+            <td>${new Date(l.timestamp).toLocaleString()}</td>
+            <td>${l.host}</td>
+            <td>${l.software}</td>
+            <td>${l.message}</td>
+        </tr>
+    `).join("");
+
+            document.getElementById("logTable").innerHTML = rows;
+        }
+
+        loadLogs();
+    </script>
+
+</body>
+
+</html>
