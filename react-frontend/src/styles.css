@@ -1,0 +1,42 @@
+/* src/styles.css */
+body, html, #root {
+  height: 100%;
+}
+
+.app-root {
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: #0b1226;
+  color: #fff;
+  min-height: 100vh;
+}
+
+.sidebar .nav-link {
+  color: #cdd6e0;
+}
+.sidebar .nav-link.active {
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+}
+
+.main-content {
+  background: #f6f8fb;
+  min-height: 100vh;
+}
+
+.navbar-top {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e8ef;
+  padding: 8px 16px;
+}
+
+.card-compact {
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16,24,40,0.04);
+}
+.small-muted { color: #6b7280; font-size: 0.9rem; }

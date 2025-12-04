@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-slate-950 text-white antialiased selection:bg-blue-500 selection:text-white;
+  background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
+  min-height: 100vh;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-700 rounded-full hover:bg-slate-600 transition-colors;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
