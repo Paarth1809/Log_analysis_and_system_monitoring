@@ -18,7 +18,10 @@ def _init_task(name: str, payload: Dict[str, Any] | None = None) -> str:
         "started_at": None,
         "finished_at": None,
         "result": None,
+<<<<<<< HEAD
         "logs": [],
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
         "payload": payload or {}
     }
     return task_id
@@ -29,6 +32,7 @@ def get_task(task_id: str) -> Dict[str, Any] | None:
 def list_tasks() -> Dict[str, Dict[str, Any]]:
     return _TASKS
 
+<<<<<<< HEAD
 def get_tasks_by_name(name: str) -> list:
     """Return all tasks matching `name`, sorted by started_at descending."""
     tasks = [t for t in _TASKS.values() if t.get("name") == name]
@@ -39,12 +43,15 @@ def get_last_task_by_name(name: str) -> Dict[str, Any] | None:
     tasks = get_tasks_by_name(name)
     return tasks[0] if tasks else None
 
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 def _set(task_id: str, **kwargs):
     task = _TASKS.get(task_id)
     if not task:
         return
     task.update(kwargs)
 
+<<<<<<< HEAD
 def log_message(task_id: str, message: str):
     task = _TASKS.get(task_id)
     if not task:
@@ -55,6 +62,8 @@ def log_message(task_id: str, message: str):
     # Also update msg for backward compatibility
     task["msg"] = message
 
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 def run_background(task_id: str, target, *args, **kwargs):
     def _wrapper():
         try:
@@ -67,9 +76,14 @@ def run_background(task_id: str, target, *args, **kwargs):
     t.start()
 
 # Convenience API used by routes
+<<<<<<< HEAD
 def create_and_start(name: str, func, *args, payload=None, pass_task_id=False, **kwargs) -> str:
     tid = _init_task(name, payload or {})
     if pass_task_id:
         kwargs['task_id'] = tid
+=======
+def create_and_start(name: str, func, *args, payload=None, **kwargs) -> str:
+    tid = _init_task(name, payload or {})
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     run_background(tid, func, *args, **kwargs)
     return tid

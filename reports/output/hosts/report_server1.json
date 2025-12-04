@@ -1,0 +1,16 @@
+{
+    "host": "server1",
+    "generated_at": "2025-11-26T23:44:41.398450+00:00",
+    "total_vulnerabilities": 0,
+    "severity_distribution": {
+        "Critical": 0,
+        "High": 0,
+        "Medium": 0,
+        "Low": 0,
+        "Unknown": 0
+    },
+    "vulnerabilities": [],
+    "recommendations": [
+        "No vulnerabilities detected for this host."
+    ]
+}

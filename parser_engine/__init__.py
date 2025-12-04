@@ -1,5 +1,6 @@
 # parser_engine/__init__.py
 # Wrap existing script execution inside a callable function.
+<<<<<<< HEAD
 import sys
 import io
 from backend.services.runner_service import log_message
@@ -40,3 +41,14 @@ def run_parser(payload=None, task_id=None):
     finally:
         # Restore print
         builtins.print = original_print
+=======
+
+def run_parser(payload=None):
+    """
+    Use this function to call your existing parser script's main logic.
+    Keep it short and import the code from parser_engine.parser
+    """
+    from parser_engine.parser import main as parser_main
+    # parser_main should be a function that accepts optional payload dict
+    return parser_main(payload)
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae

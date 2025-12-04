@@ -3,4 +3,7 @@ uvicorn[standard]
 pymongo
 pydantic
 python-dotenv
+<<<<<<< HEAD
 apscheduler
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae

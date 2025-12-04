@@ -79,6 +79,7 @@ def health():
         return jsonify({"status": "error", "reason": str(e)}), 500
 
 
+<<<<<<< HEAD
 @app.route("/", methods=["GET"])
 def index():
     return jsonify({
@@ -87,6 +88,8 @@ def index():
     }), 200
 
 
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 @app.route("/logs", methods=["GET"])
 def get_logs():
     """
@@ -241,6 +244,7 @@ def not_found(e):
     return jsonify({"error": "not_found", "message": "endpoint not found"}), 404
 
 
+<<<<<<< HEAD
 # ---------- SCHEDULER ----------
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
@@ -276,3 +280,9 @@ if __name__ == "__main__":
         start_scheduler()
         
     app.run(host=HOST, port=PORT, debug=True)
+=======
+# ---------- MAIN ----------
+if __name__ == "__main__":
+    print("Starting Backend API (Flask) on {}:{} ...".format(HOST, PORT))
+    app.run(host=HOST, port=PORT, debug=False)
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae

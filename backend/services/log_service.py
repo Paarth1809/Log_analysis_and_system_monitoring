@@ -16,7 +16,11 @@ def _to_output(doc):
         out["timestamp"] = ts.isoformat()
     return out
 
+<<<<<<< HEAD
 def build_query(host=None, software=None, event_type=None, severity=None, q=None, start=None, end=None):
+=======
+def build_query(host=None, software=None, event_type=None, q=None, start=None, end=None):
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     query = {}
     if host:
         query["host"] = host
@@ -24,8 +28,11 @@ def build_query(host=None, software=None, event_type=None, severity=None, q=None
         query["software"] = {"$regex": software, "$options": "i"}
     if event_type:
         query["event_type"] = event_type
+<<<<<<< HEAD
     if severity:
         query["severity"] = {"$regex": severity, "$options": "i"}
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     if q:
         query["$or"] = [
             {"message": {"$regex": q, "$options": "i"}},
@@ -42,8 +49,13 @@ def build_query(host=None, software=None, event_type=None, severity=None, q=None
         query["timestamp"] = ts_query
     return query
 
+<<<<<<< HEAD
 def find_logs(host=None, software=None, event_type=None, severity=None, q=None, start=None, end=None, limit=50, skip=0, sort="-timestamp"):
     query = build_query(host, software, event_type, severity, q, start, end)
+=======
+def find_logs(host=None, software=None, event_type=None, q=None, start=None, end=None, limit=50, skip=0, sort="-timestamp"):
+    query = build_query(host, software, event_type, q, start, end)
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     sort_field = "timestamp"
     sort_dir = -1
     if sort:

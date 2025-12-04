@@ -53,7 +53,11 @@ def iso_now():
 def get_hosts():
     hosts = matches.distinct("host")
     if not hosts:
+<<<<<<< HEAD
         return []     # No fallback, only real hosts
+=======
+        return ["server1"]     # fallback for empty DB
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     return hosts
 
 
@@ -191,11 +195,16 @@ def generate_host_report(host):
     recs = get_records_for(host)
     report = build_report(host, recs)
 
+<<<<<<< HEAD
     # Format: report_DD_MM_YYYY_HH-MM-SS
     ts_str = datetime.now().strftime("%d_%m_%Y_%H-%M-%S")
     
     json_path = os.path.join(HOST_DIR, f"report_{host}_{ts_str}.json")
     pdf_path = os.path.join(HOST_DIR, f"report_{host}_{ts_str}.pdf")
+=======
+    json_path = os.path.join(HOST_DIR, f"report_{host}.json")
+    pdf_path = os.path.join(HOST_DIR, f"report_{host}.pdf")
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
     export_json(report, json_path)
     export_pdf(report, pdf_path)
@@ -227,11 +236,16 @@ def generate_aggregate(reports):
         )
     }
 
+<<<<<<< HEAD
     # Format: aggregate_report_DD_MM_YYYY_HH-MM-SS
     ts_str = datetime.now().strftime("%d_%m_%Y_%H-%M-%S")
 
     json_path = os.path.join(AGG_DIR, f"aggregate_report_{ts_str}.json")
     pdf_path = os.path.join(AGG_DIR, f"aggregate_report_{ts_str}.pdf")
+=======
+    json_path = os.path.join(AGG_DIR, "aggregate_report.json")
+    pdf_path = os.path.join(AGG_DIR, "aggregate_report.pdf")
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
     export_json(agg, json_path)
     export_pdf(agg, pdf_path)
@@ -242,7 +256,11 @@ def generate_aggregate(reports):
 # -----------------------------
 # MAIN RUNNER
 # -----------------------------
+<<<<<<< HEAD
 def main(payload=None):
+=======
+def run_reports():
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     print("\n[+] Generating reports for all hosts...")
 
     hosts = get_hosts()
@@ -267,4 +285,8 @@ def main(payload=None):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     main()
+=======
+    run_reports()
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae

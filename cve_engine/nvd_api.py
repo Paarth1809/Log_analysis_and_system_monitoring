@@ -1,10 +1,14 @@
 import requests
 import time
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # NVD API Configuration
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-API_KEY = "f57b5441-e323-4ba2-a757-049b36010c21"
+API_KEY = os.getenv("NVD_API_KEY")
 
 logger = logging.getLogger("nvd_api")
 

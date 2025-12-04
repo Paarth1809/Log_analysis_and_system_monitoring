@@ -1,11 +1,18 @@
 # backend/main.py
 from fastapi import FastAPI
+<<<<<<< HEAD
 from backend.routes import run, scripts
 from fastapi.middleware.cors import CORSMiddleware
 from .config import API_HOST, API_PORT
 from .routes import logs, cves, alerts, stats
 from backend.routes import jobs
 from backend import scheduler as _scheduler
+=======
+from backend.routes import run
+from fastapi.middleware.cors import CORSMiddleware
+from .config import API_HOST, API_PORT
+from .routes import logs, cves, alerts, stats
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
 app = FastAPI(title="Vuln Detection API", version="1.0")
 
@@ -23,6 +30,7 @@ app.include_router(logs.router)
 app.include_router(cves.router)
 app.include_router(alerts.router)
 app.include_router(stats.router)
+<<<<<<< HEAD
 app.include_router(run.router)
 app.include_router(jobs.router)
 app.include_router(scripts.router)
@@ -77,6 +85,8 @@ def _shutdown():
         _scheduler.shutdown()
     except Exception:
         pass
+=======
+>>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
 @app.get("/health")
 def health():
