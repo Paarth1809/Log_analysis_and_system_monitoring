@@ -1,29 +1,27 @@
 # backend/services/stats_service.py
-from ..db import COL_MATCHES, COL_LOGS, COL_CVES, COL_ALERTS
+import sys
+import os
 from datetime import datetime
-<<<<<<< HEAD
 from pymongo.errors import ServerSelectionTimeoutError
+
+# Allow running as script
+if __name__ == "__main__":
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+    from backend.db import COL_MATCHES, COL_LOGS, COL_CVES, COL_ALERTS
+else:
+    from ..db import COL_MATCHES, COL_LOGS, COL_CVES, COL_ALERTS
 
 def get_stats(limit_hosts=20, limit_cves=20):
     """Get statistics from database with error handling"""
-=======
-
-def get_stats(limit_hosts=20, limit_cves=20):
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     # severity counts from vuln_matches
     pipeline_sev = [
         {"$group": {"_id": "$severity", "count": {"$sum": 1}}}
     ]
-<<<<<<< HEAD
     try:
         sev_cursor = COL_MATCHES.aggregate(pipeline_sev)
         severity_counts = {doc["_id"] if doc["_id"] else "Unknown": doc["count"] for doc in sev_cursor}
     except (ServerSelectionTimeoutError, Exception):
         severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
-=======
-    sev_cursor = COL_MATCHES.aggregate(pipeline_sev)
-    severity_counts = {doc["_id"] if doc["_id"] else "Unknown": doc["count"] for doc in sev_cursor}
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
     # top hosts
     pipeline_hosts = [
@@ -31,14 +29,10 @@ def get_stats(limit_hosts=20, limit_cves=20):
         {"$sort": {"count": -1}},
         {"$limit": limit_hosts}
     ]
-<<<<<<< HEAD
     try:
         hosts = [{"host": d["_id"], "count": d["count"]} for d in COL_MATCHES.aggregate(pipeline_hosts)]
     except (ServerSelectionTimeoutError, Exception):
         hosts = []
-=======
-    hosts = [{"host": d["_id"], "count": d["count"]} for d in COL_MATCHES.aggregate(pipeline_hosts)]
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
     # top CVEs
     pipeline_cves = [
@@ -46,7 +40,6 @@ def get_stats(limit_hosts=20, limit_cves=20):
         {"$sort": {"count": -1}},
         {"$limit": limit_cves}
     ]
-<<<<<<< HEAD
     try:
         top_cves = [{"cve_id": d["_id"], "count": d["count"]} for d in COL_MATCHES.aggregate(pipeline_cves)]
     except (ServerSelectionTimeoutError, Exception):
@@ -73,20 +66,28 @@ def get_stats(limit_hosts=20, limit_cves=20):
     except (ServerSelectionTimeoutError, Exception):
         alerts_count = 0
 
+    # Get unique hosts count (from matches for now as it's faster than scanning all logs)
+    try:
+        hosts_count = len(COL_MATCHES.distinct("host"))
+    except (ServerSelectionTimeoutError, Exception):
+        hosts_count = 0
+
     totals = {
         "logs": logs_count,
         "cves": cves_count,
         "alerts": alerts_count,
-        "matches": matches_count
+        "matches": matches_count,
+        "hosts": hosts_count
     }
 
     # Activity Trend (Last 24 hours)
     try:
+        # Use $toDate to safely convert string timestamps to date objects before formatting
         pipeline_trend = [
             {
                 "$group": {
                     "_id": {
-                        "$dateToString": {"format": "%H:00", "date": "$timestamp"}
+                        "$dateToString": {"format": "%H:00", "date": {"$toDate": "$timestamp"}}
                     },
                     "count": {"$sum": 1}
                 }
@@ -102,7 +103,7 @@ def get_stats(limit_hosts=20, limit_cves=20):
             {
                 "$group": {
                     "_id": {
-                        "$dateToString": {"format": "%H:00", "date": "$alert_generated_at"}
+                        "$dateToString": {"format": "%H:00", "date": {"$toDate": "$alert_generated_at"}}
                     },
                     "count": {"$sum": 1}
                 }
@@ -116,6 +117,7 @@ def get_stats(limit_hosts=20, limit_cves=20):
         all_hours = sorted(list(set(list(logs_trend.keys()) + list(alerts_trend.keys()))))
         activity_trend = []
         for h in all_hours:
+            if h is None: continue 
             activity_trend.append({
                 "time": h,
                 "logs": logs_trend.get(h, 0),
@@ -126,29 +128,31 @@ def get_stats(limit_hosts=20, limit_cves=20):
         if not activity_trend:
             activity_trend = [{"time": "00:00", "logs": 0, "alerts": 0}]
             
-    except (ServerSelectionTimeoutError, Exception):
+    except Exception as e:
+        print(f"[ERR] Stats Aggregation Failed: {e}")
         activity_trend = [{"time": "00:00", "logs": 0, "alerts": 0}]
 
-=======
-    top_cves = [{"cve_id": d["_id"], "count": d["count"]} for d in COL_MATCHES.aggregate(pipeline_cves)]
-
-    totals = {
-        "logs": COL_LOGS.estimated_document_count(),
-        "cves": COL_CVES.estimated_document_count(),
-        "alerts": COL_ALERTS.estimated_document_count(),
-        "matches": COL_MATCHES.estimated_document_count()
-    }
-
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     return {
         "generated_at": datetime.utcnow().isoformat(),
         "totals": totals,
         "severity_counts": severity_counts,
         "top_hosts": hosts,
-<<<<<<< HEAD
         "top_cves": top_cves,
         "activity_trend": activity_trend
-=======
-        "top_cves": top_cves
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     }
+
+if __name__ == "__main__":
+    print("[+] Fetching Stats...")
+    stats = get_stats()
+    print("------------------------------------------------")
+    print(f"Total Logs:     {stats['totals']['logs']}")
+    print(f"Total CVEs:     {stats['totals']['cves']}")
+    print(f"Total Matches:  {stats['totals']['matches']}")
+    print(f"Total Alerts:   {stats['totals']['alerts']}")
+    print("------------------------------------------------")
+    print("Severity Counts:", stats['severity_counts'])
+    print("------------------------------------------------")
+    print(f"Top 5 Hosts: {[h['host'] for h in stats['top_hosts'][:5]]}")
+    print("------------------------------------------------")
+    print(f"Activity Trend (Head): {stats['activity_trend'][:3]}")
+    print("------------------------------------------------")

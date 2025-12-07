@@ -1,6 +1,5 @@
 """
 PHASE 4 — STEP 1 (FINAL)
-<<<<<<< HEAD
 ALERT ENGINE V2 (Multi-Rule Support)
 
 This module implements 3 types of alert rules:
@@ -12,40 +11,33 @@ This module implements 3 types of alert rules:
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import re
-=======
-ALERT ENGINE
+import os
+import sys
+from dotenv import load_dotenv
 
-This module:
- - Reads all entries from vuln_matches
- - Creates alerts for each match
- - Stores alerts into alerts collection
- - Avoids duplicates
- - Adds timestamp, host, severity, cve_id
- - Works even if there are 0 vulnerability matches
-"""
-
-from pymongo import MongoClient
-from datetime import datetime
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
+# Load env
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
+print(f"[DEBUG] Loading env from: {env_path}")
+load_dotenv(env_path, override=True)
 
 # ----------------------------
 # CONFIG
 # ----------------------------
-MONGO_URI = "mongodb://admin:admin123@localhost:27017/?authSource=admin"
-DB_NAME = "vulnerability_logs"
+# Use the working admin URI as default
+DEFAULT_URI = "mongodb://admin:admin123@localhost:27017/?authSource=admin"
+MONGO_URI = os.getenv("MONGO_URI", DEFAULT_URI)
+DB_NAME = os.getenv("VULN_DB", "vulnerability_logs")
+
+print(f"[DEBUG] Using MONGO_URI: {MONGO_URI.split('@')[-1] if '@' in MONGO_URI else 'NO_AUTH'}")
 
 MATCH_COL = "vuln_matches"
-<<<<<<< HEAD
 LOGS_COL = "normalized_logs"
-=======
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 ALERT_COL = "alerts"
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 
 matches = db[MATCH_COL]
-<<<<<<< HEAD
 logs = db[LOGS_COL]
 alerts = db[ALERT_COL]
 
@@ -91,56 +83,23 @@ THRESHOLD_RULES = [
 # HELPER: Create Alert
 # ----------------------------
 def insert_alert(alert_id, rule_type, rule_name, severity, host, description, details):
-=======
-alerts = db[ALERT_COL]
-
-# ----------------------------
-# CREATE ALERT DOCUMENT
-# ----------------------------
-def create_alert(match_doc):
-    """
-    Convert a match entry into an alert document
-    """
-    alert_id = f"{match_doc['_id']}__alert"
-
-    # prevent duplicate alerts
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     if alerts.find_one({"_id": alert_id}):
         return False
 
     alert_doc = {
         "_id": alert_id,
         "alert_generated_at": datetime.utcnow(),
-<<<<<<< HEAD
         "rule_type": rule_type,     # Severity, Behavior, Threshold
         "rule_name": rule_name,     # e.g. "CVE-2023-1234", "Brute Force"
         "severity": severity,
         "host": host,
         "description": description,
         "details": details          # JSON object with extra info
-=======
-
-        # host metadata
-        "host": match_doc.get("host", "unknown"),
-
-        # vulnerability info
-        "cve_id": match_doc.get("cve_id"),
-        "severity": match_doc.get("severity", "Unknown"),
-        "cvss_score": match_doc.get("cvss_score", 0),
-        "affected_versions": match_doc.get("affected_versions", []),
-
-        # log info
-        "software": match_doc.get("software"),
-        "log_version": match_doc.get("log_version"),
-        "log_message": match_doc.get("log_message"),
-        "log_timestamp": match_doc.get("log_timestamp"),
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     }
 
     alerts.insert_one(alert_doc)
     return True
 
-<<<<<<< HEAD
 # ----------------------------
 # 1. SEVERITY ALERTS (from Matches)
 # ----------------------------
@@ -280,8 +239,14 @@ def process_threshold_alerts():
 # MAIN RUNNER
 # ----------------------------
 def main(payload=None):
-    print("\n[+] Running Alert Engine V2 (Multi-Rule)...\n")
+    print("\n[DIAGNOSTICS] Step 3/4: Generating Alerts (Multi-Rule)...")
     
+    # Reset if requested
+    reset = payload.get("reset", False) if payload else False
+    if reset:
+        print("[+] Resetting alerts collection...")
+        alerts.delete_many({})
+
     c1 = process_severity_alerts()
     c2 = process_behavior_alerts()
     c3 = process_threshold_alerts()
@@ -292,38 +257,10 @@ def main(payload=None):
     print(f"Severity Alerts  : {c1}")
     print(f"Behavior Alerts  : {c2}")
     print(f"Threshold Alerts : {c3}")
-    print(f"Total New Alerts : {total}\n")
+    print(f"Total New Alerts : {total}")
+    print("[DIAGNOSTICS] Step 3/4: Completed.\n")
     
     return {"status": "completed", "new_alerts": total}
 
 if __name__ == "__main__":
     main()
-=======
-
-# ----------------------------
-# RUN ALERT ENGINE
-# ----------------------------
-def run_alert_engine():
-    print("\n[+] Running Alert Engine...\n")
-
-    count = 0
-    new_alerts = 0
-
-    for match in matches.find():
-        count += 1
-        ok = create_alert(match)
-        if ok:
-            new_alerts += 1
-            print(f"[ALERT] {match.get('host')} -> {match.get('cve_id')} ({match.get('severity')})")
-
-    print("\n[✓] Alert Engine Complete")
-    print(f"Processed Matches : {count}")
-    print(f"New Alerts       : {new_alerts}\n")
-
-
-# ----------------------------
-# EXECUTE
-# ----------------------------
-if __name__ == "__main__":
-    run_alert_engine()
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae

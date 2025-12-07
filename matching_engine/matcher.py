@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 PHASE 3 — STEP 1 (API-BASED MATCHING)
 
 This matcher:
@@ -15,42 +14,34 @@ from pymongo import MongoClient
 from datetime import datetime
 import sys
 import os
+from dotenv import load_dotenv
+
+# Load env
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
+print(f"[DEBUG] Loading env from: {env_path}")
+load_dotenv(env_path, override=True)
 
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from cve_engine.nvd_api import query_nvd_cves
-=======
-PHASE 3 — STEP 1 (FINAL & OPTIMIZED FOR AUTH.LOG + ELASTIC LOGS)
-
-This matcher handles:
- - Linux Kernel CVEs (version extracted from kernel log lines)
- - log.software mapping → linux_kernel
- - version extraction from system messages
- - fast CVE lookup with indexing
- - stores matches in vuln_matches
-
-Other logs (auth, sshd, audit, cron) contain NO version → skipped safely.
-"""
-
-import re
-from pymongo import MongoClient
-from datetime import datetime
-from cve_engine.version_compare import satisfies
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
 # ----------------------------
 # CONFIG
 # ----------------------------
-MONGO_URI = "mongodb://admin:admin123@localhost:27017/?authSource=admin"
-DB = "vulnerability_logs"
-<<<<<<< HEAD
+# Use the working admin URI as default
+DEFAULT_URI = "mongodb://admin:admin123@localhost:27017/?authSource=admin"
+MONGO_URI = os.getenv("MONGO_URI", DEFAULT_URI)
+DB = os.getenv("VULN_DB", "vulnerability_logs")
+
+print(f"[DEBUG] Using MONGO_URI: {MONGO_URI.split('@')[-1] if '@' in MONGO_URI else 'NO_AUTH'}")
+
 LOGS_COL = "normalized_logs"
 MATCH_COL = "vuln_matches"
 CVE_COL = "cve_database"
 
 # Limit logs to process to avoid API spamming during testing
-LOG_LIMIT = 1000 
+LOG_LIMIT = 5000
 
 client = MongoClient(MONGO_URI)
 db = client[DB]
@@ -60,42 +51,10 @@ cves_col = db[CVE_COL]
 
 # Cache: "software version" -> [cve_list]
 CVE_CACHE = {}
-=======
-
-LOGS_COL = "normalized_logs"
-CVE_COL = "cve_database"
-MATCH_COL = "vuln_matches"
-
-# Limit logs per run (safe)
-LOG_LIMIT = 10000
-
-client = MongoClient(MONGO_URI)
-db = client[DB]
-
-logs = db[LOGS_COL]
-cves = db[CVE_COL]
-matches = db[MATCH_COL]
-
-# ----------------------------
-# SOFTWARE NORMALIZATION
-# ----------------------------
-def normalize_software(name: str):
-    if not name:
-        return None
-
-    s = name.lower()
-
-    if "kernel" in s:
-        return "linux_kernel"
-
-    return None  # other logs not matchable
-
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
 
 # ----------------------------
 # VERSION EXTRACTION
 # ----------------------------
-<<<<<<< HEAD
 KERNEL_REGEX = re.compile(r"Linux version\s+([0-9]+\.[0-9]+\.[0-9]+)", re.IGNORECASE)
 
 def extract_software_version(log):
@@ -127,7 +86,13 @@ def extract_software_version(log):
 def main(payload=None):
     print("\n[+] Starting API-based Vulnerability Matching...")
     print(f"[+] Log Limit: {LOG_LIMIT}")
-    
+
+    # Reset if requested
+    reset = payload.get("reset", False) if payload else False
+    if reset:
+        print("[+] Resetting matches collection...")
+        matches.delete_many({})
+
     cursor = logs.find().limit(LOG_LIMIT)
     processed = 0
     new_matches = 0
@@ -208,119 +173,3 @@ def main(payload=None):
 
 if __name__ == "__main__":
     main()
-
-=======
-KERNEL_REGEX = re.compile(
-    r"Linux version\s+([0-9]+\.[0-9]+\.[0-9]+)", re.IGNORECASE
-)
-
-def extract_version(log_doc):
-    msg = log_doc.get("message", "")
-
-    # extract kernel version
-    m = KERNEL_REGEX.search(msg)
-    if m:
-        return m.group(1)
-
-    # fallback if version exists
-    version = log_doc.get("version")
-    if version and version != "N/A":
-        return version
-
-    return None
-
-
-# ----------------------------
-# GET CVEs FOR PRODUCT
-# ----------------------------
-def get_kernel_cves():
-    return list(cves.find(
-        {"product": {"$regex": "linux", "$options": "i"}},
-        {"cve_id": 1, "affected_versions": 1, "severity": 1}
-    ))
-
-
-# ----------------------------
-# MATCH ONE LOG
-# ----------------------------
-def match_log(log):
-    sw = log.get("software")
-    normalized = normalize_software(sw)
-
-    if normalized != "linux_kernel":
-        return []  # skip non-kernel logs
-
-    version = extract_version(log)
-    if not version:
-        return []  # no version → can't match
-
-    results = []
-    kernel_cves = get_kernel_cves()
-
-    for cve in kernel_cves:
-        for vr in cve.get("affected_versions", []):
-            try:
-                if satisfies(version, vr):
-                    results.append((cve, vr))
-            except:
-                pass
-
-    return results
-
-
-# ----------------------------
-# STORE MATCH
-# ----------------------------
-def store_match(log, cve, vr):
-    mid = f"{log['_id']}__{cve['cve_id']}"
-
-    if matches.find_one({"_id": mid}):
-        return False
-
-    matches.insert_one({
-        "_id": mid,
-        "matched_at": datetime.utcnow(),
-        "log_id": str(log["_id"]),
-        "software": log.get("software"),
-        "kernel_version": extract_version(log),
-        "cve_id": cve["cve_id"],
-        "severity": cve.get("severity"),
-        "affected_version_range": vr,
-        "message": log.get("message")
-    })
-
-    return True
-
-
-# ----------------------------
-# MAIN RUNNER
-# ----------------------------
-def run():
-    print("\n[+] Running Kernel Vulnerability Matching Engine...\n")
-
-    processed = 0
-    new_matches = 0
-
-    cursor = logs.find().limit(LOG_LIMIT)
-
-    for log in cursor:
-        processed += 1
-
-        matches_found = match_log(log)
-
-        for cve, vr in matches_found:
-            if store_match(log, cve, vr):
-                new_matches += 1
-                print(f"[MATCH] linux_kernel {extract_version(log)} -> {cve['cve_id']} [{vr}]")
-
-    print("\n[✓] Matching Completed")
-    print(f"Processed Logs : {processed}")
-    print(f"New Matches    : {new_matches}")
-
-
-# ----------------------------
-# RUN
-# ----------------------------
-if __name__ == "__main__":
-    run()
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae

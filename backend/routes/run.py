@@ -28,11 +28,7 @@ except Exception:
 def start_parser(payload: Dict = None):
     if not run_parser:
         raise HTTPException(500, "Parser function not available")
-<<<<<<< HEAD
     tid = create_and_start("parser", run_parser, payload or {}, pass_task_id=True)
-=======
-    tid = create_and_start("parser", run_parser, payload or {})
->>>>>>> cd260ba9258ba3c2c7ffb1588424565f3f1c9eae
     return {"task_id": tid, "status": "started"}
 
 @router.post("/matching")

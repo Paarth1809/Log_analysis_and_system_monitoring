@@ -50,13 +50,8 @@ export default function NavbarTop() {
     try {
       setRunning(true);
 
-      // Run full diagnostic suite sequentially
-      await runScriptAndWait('parse_logs');
-      await runScriptAndWait('insert_logs');
-      await runScriptAndWait('run_matching');
-      await runScriptAndWait('send_alerts');
-      await runScriptAndWait('generate_reports');
-      await runScriptAndWait('validate_data');
+      // Run full diagnostic suite sequentially on backend
+      await runScriptAndWait('run_diagnostics');
 
       // Artificial delay to show completion
       setTimeout(() => {
@@ -66,7 +61,7 @@ export default function NavbarTop() {
     } catch (err) {
       console.error("Diagnostics failed", err);
       setRunning(false);
-      alert("Diagnostics Failed. Check console for details.");
+      alert(`Diagnostics Failed: ${err.message}. Check backend logs.`);
     }
   };
 
