@@ -27,8 +27,14 @@ except:
 # -----------------------------
 # CONFIG
 # -----------------------------
-MONGO_URI = "mongodb://admin:admin123@localhost:27017/?authSource=admin"
-DB_NAME = "vulnerability_logs"
+# -----------------------------
+# CONFIG
+# -----------------------------
+from dotenv import load_dotenv
+load_dotenv()
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://admin:admin123@localhost:27017/?authSource=admin")
+DB_NAME = os.getenv("VULN_DB", "vulnerability_logs")
 COLLECTION = "alerts"
 
 OUTPUT_DIR = "reports/output/"
@@ -38,9 +44,20 @@ AGG_DIR = os.path.join(OUTPUT_DIR, "aggregate")
 os.makedirs(HOST_DIR, exist_ok=True)
 os.makedirs(AGG_DIR, exist_ok=True)
 
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-matches = db[COLLECTION]
+try:
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    # Lazy connection, but good to check in main execution, not global scope if possible
+    # We leave it global here for compatibility with existing functions
+except Exception as e:
+    print(f"[ERR] Report Generator Connection Failed: {e}")
+    client = None
+
+if client:
+    db = client[DB_NAME]
+    matches = db[COLLECTION]
+else:
+    db = None
+    matches = None
 
 
 # -----------------------------
