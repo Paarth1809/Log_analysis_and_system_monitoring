@@ -141,28 +141,27 @@ def main(payload=None):
         for cve in cve_list:
             match_id = f"{log['_id']}__{cve['cve_id']}"
             
-            # Check if match already exists
-            if matches.find_one({"_id": match_id}):
-                continue
-                
-            match_doc = {
-                "_id": match_id,
-                "matched_at": datetime.utcnow(),
-                "log_id": str(log["_id"]),
-                "host": log.get("host"),
-                "timestamp": log.get("timestamp"),
-                "software": sw,
-                "version": ver,
-                "cve_id": cve["cve_id"],
-                "severity": cve["severity"],
-                "cvss_score": cve["cvss_score"],
-                "description": cve["description"],
-                "message": log.get("message")
-            }
-            
-            matches.insert_one(match_doc)
-            new_matches += 1
+            # Upsert match to prevent DuplicateKeyError (race conditions with scheduler)
+            matches.update_one(
+                {"_id": match_id},
+                {"$set": {
+                    "_id": match_id,
+                    "matched_at": datetime.utcnow(),
+                    "log_id": str(log["_id"]),
+                    "host": log.get("host"),
+                    "timestamp": log.get("timestamp"),
+                    "software": sw,
+                    "version": ver,
+                    "cve_id": cve["cve_id"],
+                    "severity": cve["severity"],
+                    "cvss_score": cve["cvss_score"],
+                    "description": cve["description"],
+                    "message": log.get("message")
+                }},
+                upsert=True
+            )
             print(f"[MATCH] {sw} {ver} -> {cve['cve_id']} ({cve['severity']})")
+            new_matches += 1
 
     print(f"\n[✓] Matching Completed")
     print(f"Processed: {processed}")

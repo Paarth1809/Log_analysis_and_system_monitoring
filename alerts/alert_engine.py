@@ -83,22 +83,23 @@ THRESHOLD_RULES = [
 # HELPER: Create Alert
 # ----------------------------
 def insert_alert(alert_id, rule_type, rule_name, severity, host, description, details):
-    if alerts.find_one({"_id": alert_id}):
-        return False
-
-    alert_doc = {
-        "_id": alert_id,
-        "alert_generated_at": datetime.utcnow(),
-        "rule_type": rule_type,     # Severity, Behavior, Threshold
-        "rule_name": rule_name,     # e.g. "CVE-2023-1234", "Brute Force"
-        "severity": severity,
-        "host": host,
-        "description": description,
-        "details": details          # JSON object with extra info
-    }
-
-    alerts.insert_one(alert_doc)
-    return True
+    # Use upsert to handle potential race conditions with scheduler
+    res = alerts.update_one(
+        {"_id": alert_id},
+        {"$set": {
+            "_id": alert_id,
+            "alert_generated_at": datetime.utcnow(),
+            "rule_type": rule_type,
+            "rule_name": rule_name,
+            "severity": severity,
+            "host": host,
+            "description": description,
+            "details": details
+        }},
+        upsert=True
+    )
+    # Return True if a new document was inserted (upserted_id is not None)
+    return res.upserted_id is not None
 
 # ----------------------------
 # 1. SEVERITY ALERTS (from Matches)
