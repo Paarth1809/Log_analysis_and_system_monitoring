@@ -2,12 +2,12 @@
 import threading
 import uuid
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # task states: queued, running, success, failed
 _TASKS: Dict[str, Dict[str, Any]] = {}
 
-def _init_task(name: str, payload: Dict[str, Any] | None = None) -> str:
+def _init_task(name: str, payload: Optional[Dict[str, Any]] = None) -> str:
     task_id = str(uuid.uuid4())[:8]
     _TASKS[task_id] = {
         "id": task_id,
