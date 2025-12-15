@@ -209,8 +209,10 @@ def main(payload=None):
     project_root = os.path.abspath(os.path.join(base_dir, ".."))
     datasets_dir = os.path.join(project_root, "datasets")
     
-    # Get all .log files from datasets
-    files = glob.glob(os.path.join(datasets_dir, "*.log"))
+    # Get all log files (.log, .txt, .json, .jsonl)
+    files = []
+    for ext in ["*.log", "*.txt", "*.json", "*.jsonl"]:
+        files.extend(glob.glob(os.path.join(datasets_dir, ext)))
     
     if not files:
         print(f"[ERR] No .log files found in {datasets_dir}")

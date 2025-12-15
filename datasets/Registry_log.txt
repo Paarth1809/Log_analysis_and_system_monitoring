@@ -1,0 +1,148 @@
+Registry_match:
+
+1. Raw Input: (registry_rawlogs.txt)
+Example logs
+
+[2025-02-20 12:21:03] Sysmon EventID=13 User=SYSTEM
+Registry value set:
+Key: HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+Value Name: OneDrive
+Value Data: "C:\Program Files\OneDrive\OneDrive.exe"
+
+[2025-02-20 11:42:10] Sysmon EventID=13 User=NT AUTHORITY\SYSTEM
+Registry value added:
+Key: HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+Value Name: MalwareAgent
+Value Data: "C:\Users\Public\malware.exe"
+Status: SUCCESS
+
+[2025-02-20 12:04:12] Sysmon EventID=13 User=Administrator
+Registry value set:
+Key: HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+Value Name: ChromeUpdater
+Value Data: "C:\Temp\chrome_updater.exe"
+Status: SUCCESS
+
+[2025-02-20 12:29:55] Security EventID=4657 User=NT AUTHORITY\SYSTEM
+Registry modification attempt:
+Key: HKLM\SYSTEM\CurrentControlSet\Services\WinDefend
+Value: DisableAntiSpyware
+New Data: 0
+Status: FAILED
+
+[2025-02-20 12:36:59] Security EventID=4663 User=ATTACKER-PC$
+Unauthorized registry access attempt:
+Key: HKLM\SAM
+Access: Read Permissions
+Status: FAILED
+
+----------------------------------------------------------------------------------------
+
+2. parser_windows_registry.py ----Parsing Logic and storing the records as Normalized form in Mongodb as a collection windows_registrylogs. Avoids duplicates. 
+
+Inserted Documents 5:
+
+Document format:
+
+_id : 6939174024210b54130e8b38
+timestamp : 2025-02-20T12:21:03Z
+log_type : registry
+event_id : 13
+host : DESKTOP-SEC01
+user : SYSTEM
+key_path : HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+value_name : OneDrive
+value_data : "C:\Program Files\OneDrive\OneDrive.exe"
+status : SUCCESS
+description : Parsed registry event from raw logs.
+log_hash : 004016c31fa2095f9b0c57e9b570b7a30609e4c0edff3393c305a9c4f4267ae9
+
+------------------------------------------------------------------------------------------
+3.registry_matcher.py----Matches the registry logs with certain rules and generates the alerts in mongodb.
+
+It now detects:
+🔐 Defender tampering (4657)
+🛑 SAM hive access (4663)
+🛑 Unauthorized registry access (4663)
+🧿 Remote machine $ accounts accessing registry
+🎣 Persistence (Run / RunOnce)
+🦠 Hidden AppData malware
+🔥 Fake system binaries
+🕒 Odd-hour malware startup
+🗂 Ransomware file hiding behavior
+🔵 Whitelist support
+🔗 Duplicate-proof alert signatures
+
+Logs-5
+Alerts-4
+Alerts in Mongodb:
+
+Alert1:
+{
+  "_id": "7dd075920e0c936abba41823e51b5268cfd384f06b82bf0b646ecdd595e4b221",
+  "timestamp": "2025-12-10T06:46:37.028444+00:00",
+  "host": "DESKTOP-SEC01",
+  "user": "NT AUTHORITY\\SYSTEM",
+  "log_type": "registry",
+  "alert_type": "registry_fake_system_binary",
+  "severity": "critical",
+  "description": "Registry autorun modification detected (registry_fake_system_binary, severity=critical).",
+  "registry_key": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+  "value_name": "MalwareAgent",
+  "value_data": "C:\\Users\\Public\\malware.exe",
+  "original_log_id": "6939174024210b54130e8b39"
+}
+
+Alert2:
+{
+  "_id": "289ec868ad2999b78c56fd445cce3e7335d36026bb7d66d31cc143ed0a6f190a",
+  "timestamp": "2025-12-10T06:46:37.030970+00:00",
+  "host": "DESKTOP-SEC01",
+  "user": "Administrator",
+  "log_type": "registry",
+  "alert_type": "registry_suspicious_path",
+  "severity": "high",
+  "description": "Registry autorun modification detected (registry_suspicious_path, severity=high).",
+  "registry_key": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+  "value_name": "ChromeUpdater",
+  "value_data": "C:\\Temp\\chrome_updater.exe",
+  "original_log_id": "6939174024210b54130e8b3a"
+}
+
+
+{
+  "_id": "ef8e53b305d01c7efec3e3829898a4513af3527944172b22442682c8515a47ac",
+  "timestamp": "2025-12-10T10:00:30.373763+00:00",
+  "host": "DESKTOP-SEC01",
+  "user": "NT AUTHORITY\\SYSTEM",
+  "log_type": "registry",
+  "alert_type": "registry_defender_tamper",
+  "severity": "critical",
+  "description": "Windows Defender tampering attempt detected.",
+  "registry_key": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WinDefend",
+  "value_name": "DisableAntiSpyware",
+  "value_data": "0",
+  "original_log_id": "693940297812ac2952465009",
+  "source": "Registry Matcher"
+}
+
+{
+  "_id": "14d075199caabfe649104aec70653ab7dd2fc6627114ac9fb99f09fcbb170f4c",
+  "timestamp": "2025-12-10T10:00:30.406035+00:00",
+  "host": "DESKTOP-SEC01",
+  "user": "ATTACKER-PC$",
+  "log_type": "registry",
+  "alert_type": "registry_sam_access_attempt",
+  "severity": "critical",
+  "description": "Unauthorized attempt to access SAM registry hive.",
+  "registry_key": "HKLM\\SAM",
+  "value_name": null,
+  "value_data": null,
+  "original_log_id": "693940297812ac295246500a",
+  "source": "Registry Matcher"
+}
+
+
+---------------------------------------------------------------------------------------------------------------------
+
+

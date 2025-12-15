@@ -101,6 +101,21 @@ def get_logs():
     query = {}
     if host:
         query["host"] = host
+    
+    category = request.args.get("category")
+    if category and category != "all":
+        # Map Category -> Source Files
+        cat_map = {
+            "Network": ["dns.log", "firewall_logs.json"],
+            "Windows": ["windows_event.txt", "sysmon"], # sysmon source is explicitly set
+            "Web": ["http.log"],
+            "Authentication": ["auth.log", "ssh.log"],
+            "System": ["syslog_raw.txt", "ftp.log", "smtp.log", "syslog"]
+        }
+        
+        sources = cat_map.get(category)
+        if sources:
+            query["source"] = {"$in": sources}
 
     cursor = COL_LOGS.find(query).skip(skip).limit(limit)
     total = COL_LOGS.count_documents(query)

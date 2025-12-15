@@ -8,6 +8,7 @@ export default function LogsSection() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [category, setCategory] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(100);
@@ -18,7 +19,7 @@ export default function LogsSection() {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, severityFilter, page, limit]);
+  }, [searchTerm, severityFilter, category, page, limit]);
 
   const fetchLogs = async () => {
     try {
@@ -28,7 +29,8 @@ export default function LogsSection() {
         limit,
         skip,
         q: searchTerm || undefined,
-        severity: severityFilter !== 'all' ? severityFilter : undefined
+        severity: severityFilter !== 'all' ? severityFilter : undefined,
+        category: category !== 'all' ? category : undefined
       });
 
       if (res.data) {
@@ -96,6 +98,23 @@ export default function LogsSection() {
               className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
+
+          <select
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setPage(1);
+            }}
+            className="px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+          >
+            <option value="all">All Categories</option>
+            <option value="Network">Network Logs</option>
+            <option value="Windows">Windows Logs</option>
+            <option value="Web">Web Server Logs</option>
+            <option value="Authentication">Auth Logs</option>
+            <option value="System">System Logs</option>
+          </select>
+
           <select
             value={severityFilter}
             onChange={(e) => {

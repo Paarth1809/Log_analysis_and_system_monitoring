@@ -143,7 +143,9 @@ def process_behavior_alerts():
     
     # Scan recent logs (e.g. last 1 hour to avoid re-scanning old history forever)
     # For demo, we scan all or limit to recent. Let's scan last 1000 logs for efficiency.
-    cursor = logs.find().sort("timestamp", -1).limit(2000)
+    # Scan recent logs 
+    # Increased limit to ensure new large logs are covered
+    cursor = logs.find().sort("timestamp", -1).limit(100000)
     
     for log in cursor:
         msg = log.get("message", "")

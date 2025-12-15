@@ -93,7 +93,8 @@ def main(payload=None):
         print("[+] Resetting matches collection...")
         matches.delete_many({})
 
-    cursor = logs.find().limit(LOG_LIMIT)
+    # Process all logs (removed limit)
+    cursor = logs.find()
     processed = 0
     new_matches = 0
     new_cves_stored = 0
