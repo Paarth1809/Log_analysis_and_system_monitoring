@@ -99,8 +99,19 @@ export default function Alerts() {
                                     </p>
 
                                     {alert.details && (
-                                        <div className="bg-slate-950/50 p-2 rounded border border-slate-800 text-xs font-mono text-slate-400 overflow-x-auto">
-                                            {JSON.stringify(alert.details, null, 2)}
+                                        <div className="bg-slate-950/50 p-3 rounded border border-slate-800 text-xs font-mono text-slate-400 overflow-x-auto">
+                                            {(() => {
+                                                const details = { ...alert.details };
+                                                // Try to parse nested JSON matches
+                                                if (typeof details.log_message === 'string') {
+                                                    try {
+                                                        if (details.log_message.trim().startsWith('{')) {
+                                                            details.log_message = JSON.parse(details.log_message);
+                                                        }
+                                                    } catch (e) { }
+                                                }
+                                                return <pre>{JSON.stringify(details, null, 2)}</pre>;
+                                            })()}
                                         </div>
                                     )}
                                 </div>

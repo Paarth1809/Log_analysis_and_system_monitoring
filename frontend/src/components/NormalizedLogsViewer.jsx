@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../api';
 import { FileText, Download, Filter, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,8 +34,8 @@ export default function NormalizedLogsViewer() {
       if (filters.severity !== 'all') params.append('severity', filters.severity);
       if (filters.host !== 'all') params.append('host', filters.host);
 
-      const response = await fetch(`http://localhost:8000/logs?${params.toString()}`);
-      const data = await response.json();
+      const response = await api.get('/logs', { params });
+      const data = response.data;
 
       if (data) {
         setLogs(Array.isArray(data) ? data : data.items || []);
