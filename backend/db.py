@@ -3,6 +3,11 @@ from pymongo import MongoClient
 from .config import MONGO_URI, DB_NAME
 
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+try:
+    client.admin.command("ping")
+    print("MongoDB connected successfully")
+except Exception as e:
+    print(f"Warning: Could not connect to MongoDB: {e}")
 db = client[DB_NAME]
 
 # collection handles (reuse across services)
