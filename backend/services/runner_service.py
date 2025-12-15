@@ -23,7 +23,7 @@ def _init_task(name: str, payload: Optional[Dict[str, Any]] = None) -> str:
     }
     return task_id
 
-def get_task(task_id: str) -> Dict[str, Any] | None:
+def get_task(task_id: str) -> Optional[Dict[str, Any]]:
     return _TASKS.get(task_id)
 
 def list_tasks() -> Dict[str, Dict[str, Any]]:
@@ -35,7 +35,7 @@ def get_tasks_by_name(name: str) -> list:
     tasks.sort(key=lambda x: x.get("started_at") or 0, reverse=True)
     return tasks
 
-def get_last_task_by_name(name: str) -> Dict[str, Any] | None:
+def get_last_task_by_name(name: str) -> Optional[Dict[str, Any]]:
     tasks = get_tasks_by_name(name)
     return tasks[0] if tasks else None
 
